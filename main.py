@@ -24,9 +24,15 @@ def main():
     #                     bias_vals=[1, 1],
     #                     bias_weights=[[0.1, 0.2, 0.5], [-0.1, 0.6]])
 
-    print(net.train([1, 0, 1], 1, learning_rate=0.9))
-    # print(net.calculate([1, 0, 1], 1))
-
+    # net.train([1, 0, 1], 1, learning_rate=0.9)
+    # net.train([1, 0, 1], 1, learning_rate=0.9)
+    # net.train([1, 0, 1], 1, learning_rate=0.9)
+    # net.train([1, 0, 1], 1, learning_rate=0.9)
+    
+    
+    # net.save('network.p')
+    net = NeuralNetwork(f, f_prime, 'network.p')
+    print(net.weights)
 
 if __name__ == '__main__':
     main()

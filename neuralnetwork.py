@@ -1,11 +1,23 @@
 import numpy as np
+import pickle
 
 
 class NeuralNetwork(object):
     def __init__(self, func, deriv, *args, bias_vals=None, bias_weights=None):
         """
-        Passed the list of weights of each layer and the evaluation function
+        Passed the list of weights of each layer and the evaluation function or a file name
         """
+
+        if type(args[0]) is str:
+            with open(args[0], 'rb') as file:
+                load = pickle.load(file)
+                self.weights = load.weights
+                self.bias_vals = load.bias_vals
+                self.bias_weights = load.bias_weights
+                self.f = func
+                self.f_prime = deriv
+                self.num_inputs = load.num_inputs
+                return None
 
         self.weights = args
         self.bias_vals = bias_vals or [0 for weight in self.weights]
@@ -41,7 +53,7 @@ class NeuralNetwork(object):
         else:
             return inputs.tolist()
 
-    def train(self, inputs, output, learning_rate=0.9):
+    def train(self, inputs, output, learning_rate=0.03):
         neu_vals = np.array(self.calculate(inputs, True))
         new_weights = np.copy(self.weights)
         for i in range(len(neu_vals) - 1, -1, -1):
@@ -63,4 +75,13 @@ class NeuralNetwork(object):
             new_weights[i] = ((o_i.reshape(
                 len(o_i), -1) * delta * learning_rate) + w_ij).tolist()
         self.weights = np.array(new_weights)
-        print(self.weights)
+
+    def save(self, file_name):
+        temp_f = self.f
+        temp_f_prime = self.f_prime
+        del self.f
+        del self.f_prime
+        with open(file_name, 'wb') as file:
+            pickle.dump(self, file)
+        self.f = temp_f
+        self.f_prime = temp_f_prime
