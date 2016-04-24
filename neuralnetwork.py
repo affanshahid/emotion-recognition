@@ -70,7 +70,7 @@ class NeuralNetwork(object):
                 w_jk = np.array(self.weights[i + 1])
                 delta = (deltas.dot(w_jk.transpose())) * (self.f_prime(o_j))
 
-#   delta_weight = learning_rate * delta * o_i
+            #delta_weight = learning_rate * delta * o_i
             deltas = np.array(delta)
             new_weights[i] = ((o_i.reshape(
                 len(o_i), -1) * delta * learning_rate) + w_ij).tolist()
