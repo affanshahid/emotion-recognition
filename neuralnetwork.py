@@ -9,15 +9,8 @@ class NeuralNetwork(object):
         """
 
         if type(args[0]) is str:
-            with open(args[0], 'rb') as file:
-                load = pickle.load(file)
-                self.weights = load.weights
-                self.bias_vals = load.bias_vals
-                self.bias_weights = load.bias_weights
-                self.f = func
-                self.f_prime = deriv
-                self.num_inputs = load.num_inputs
-                return None
+            self.load(func, deriv, args[0])
+            return None
 
         self.weights = args
         self.bias_vals = bias_vals or [0 for weight in self.weights]
@@ -55,15 +48,17 @@ class NeuralNetwork(object):
 
     def train(self, inputs, output, learning_rate=0.03):
         neu_vals = np.array(self.calculate(inputs, True))
-        new_weights = np.copy(self.weights)
+        new_weights = (np.copy(self.weights)).tolist()
+        new_bias = (np.copy(self.bias_weights)).tolist()
         for i in range(len(neu_vals) - 1, -1, -1):
             if i is len(neu_vals) - 1:
                 continue
 
             w_ij = np.array(self.weights[i])
             o_i = np.array(neu_vals[i])
+            b_i = np.array([self.bias_vals[i]])
+            w_bj = np.array(self.bias_weights[i])
             o_j = np.array(neu_vals[i + 1])
-
             if i is len(neu_vals) - 2:
                 delta = (output - o_j) * self.f_prime(o_j)
             else:
@@ -74,7 +69,11 @@ class NeuralNetwork(object):
             deltas = np.array(delta)
             new_weights[i] = ((o_i.reshape(
                 len(o_i), -1) * delta * learning_rate) + w_ij).tolist()
-        self.weights = np.array(new_weights)
+            new_bias[i] = ((b_i.reshape(
+                len(b_i), -1) * delta * learning_rate) + w_bj)[0].tolist()
+        self.weights = new_weights
+        self.bias_weights = new_bias
+        return neu_vals
 
     def save(self, file_name):
         temp_f = self.f
@@ -85,3 +84,13 @@ class NeuralNetwork(object):
             pickle.dump(self, file)
         self.f = temp_f
         self.f_prime = temp_f_prime
+
+    def load(self, func, func_prime, file_name):
+        with open(file_name, 'rb') as file:
+            load = pickle.load(file)
+            self.weights = load.weights
+            self.bias_vals = load.bias_vals
+            self.bias_weights = load.bias_weights
+            self.f = func
+            self.f_prime = func_prime
+            self.num_inputs = load.num_inputs
