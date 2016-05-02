@@ -1,25 +1,53 @@
 import numpy as np
-import cv2
 import math
+import cv2
 import os
 from emotion_network import EmotionNetwork
+from face_detector import calculate_features
+from sklearn import preprocessing
 
-width, height = 28, 10
-pixels = width * height
+
+def normalize(dataset):
+    l = list(map(lambda x: (x), dataset))
+    return l
+    # return preprocessing.scale(l)
 
 
-def vectorize(filename):
-    im = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-    im_resized = cv2.resize(im, (width, height))
-    return im_resized.flatten().tolist()
+def get_scaled(path):
+    im = cv2.imread(path)
+    features = calculate_features(im)
+    scaled = normalize(features)
+    return scaled
 
 
 def main():
-    
-    cascade = cv2.CascadeClassifier(cv2.FACE)
-    im = cv2.imread('./data/neutral/f4003-m.jpg')
-    mouth = cascade.detectMultiScale(im)
-    print(mouth)
+    net = EmotionNetwork(load=True)
+    flag = True
+
+    if flag:
+        for i in range(1):
+            for happy, neutral in zip(
+                    os.listdir('./data/workarea/jaffe/happy/'),
+                    os.listdir('./data/workarea/jaffe/neutral/')):
+
+                scaled = get_scaled('./data/workarea/jaffe/happy/' + happy)
+                net.train(scaled, [1])
+                scaled = get_scaled('./data/workarea/jaffe/neutral/' + neutral)
+                net.train(scaled, [0])
+            print(i)
+
+        scaled = get_scaled('./data/workarea/jaffe/happy/KR.HA2.75.tiff')
+        print('happyface: ', net.calculate(scaled))
+
+        scaled = get_scaled('./data/workarea/jaffe/neutral/KR.NE1.71.tiff')
+        print('neutralface: ', net.calculate(scaled))
+        net.save('2emo.p')
+    else:
+        scaled = get_scaled('./data/workarea/farhanhappy.JPG')
+        print('happy: ', net.calculate(scaled))
+
+        scaled = get_scaled('./data/workarea/farhanneutral.JPG')
+        print('neutral: ', net.calculate(scaled))
 
 
 if __name__ == '__main__':
