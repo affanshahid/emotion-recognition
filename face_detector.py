@@ -134,7 +134,8 @@ def main():
     cam = cv2.VideoCapture(1)
     while True:
         rval, img = cam.read()
-        img = cv2.imread('./data/workarea/sample.jpg')
+        img = cv2.imread(
+            'C:/Users/Affan/Documents/Youcam/Snapshot_20160502_45.jpg')
         dets = detector(img, 1)
         if len(dets) > 0:
             face = dets[0]

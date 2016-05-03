@@ -1,6 +1,7 @@
 from neuralnetwork import NeuralNetwork
 import numpy as np
 import math
+import random
 
 
 class EmotionNetwork(object):
@@ -17,18 +18,51 @@ class EmotionNetwork(object):
         return x * (1 - x)
 
     def __init__(self, load=False):
+        # inputs: reyeh, leyeh, mw, mh, ntr, ntl
+        # hidden = 6
+        # outputs: happy, sad, surprise
 
         if load is True:
             self.load()
         elif load is not False:
             self.load(load)
         else:
-            # input_weights = np.random.normal(0, 1,
-            #                                  (self.num_inputs, 1)).tolist()
-            # input_weights = [[0.01] for i in range(280)]
-            input_weights = [[0.3], [0.35], [0.6], [0.3], [0.2], [0.2]]
+            # working weights for happy/neutral
+            # input_weights = [[0.3], [0.35], [0.6], [0.3], [0.2], [0.2]]
 
-            self.nn = NeuralNetwork(self.f, self.f_prime, input_weights)
+            inputs_num = 6
+            hidden_num = 7
+            outputs_num = 3
+
+            # inputs_range = ((-1 / math.sqrt(inputs_num)),
+            #                 (1 / math.sqrt(inputs_num)))
+
+            # input_weights = [[random.uniform(*inputs_range)
+            #                   for _ in range(hidden_num)]
+            #                  for _ in range(inputs_num)]
+
+            # hidden_range = ((-1 / math.sqrt(hidden_num)),
+            #                 (1 / math.sqrt(hidden_num)))
+            # hidden_weights = [[random.uniform(*hidden_range)
+            #                    for _ in range(outputs_num)]
+            #                   for _ in range(hidden_num)]
+
+            input_weights = [
+                [0.3] * hidden_num, [0.3] * hidden_num, [0.4] * hidden_num,
+                [0.5] * hidden_num, [0.35] * hidden_num, [0.35] * hidden_num
+            ]
+
+            hidden_weights = [
+                [0.3] * outputs_num, [0.3] * outputs_num, [0.4] * outputs_num,
+                [0.5] * outputs_num, [0.35] * outputs_num,
+                [0.35] * outputs_num, [0.6] * outputs_num
+            ]
+
+            self.nn = NeuralNetwork(self.f,
+                                    self.f_prime,
+                                    input_weights,
+                                    hidden_weights,
+                                    bias_vals=[0, 0])
 
     def save(self, filename=file_name):
         self.nn.save(filename)
@@ -41,3 +75,20 @@ class EmotionNetwork(object):
 
     def load(self, filename=file_name):
         self.nn = NeuralNetwork(self.f, self.f_prime, filename)
+
+    def predict(self, input):
+        outputs = self.calculate(input)
+        max = 0
+        for i, val in enumerate(outputs):
+            if val > outputs[max]:
+                max = i
+
+        # if outputs[i] < 0.5:
+        #     return '*UNCERTAIN*'
+
+        if max is 0:
+            return 'happy'
+        elif max is 1:
+            return 'neutral'
+        elif max is 2:
+            return 'surprise'
